@@ -1,7 +1,12 @@
 package me.alex.ht.scouting
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ScrollbarStyle
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.RestartAlt
@@ -49,61 +54,67 @@ fun App() {
                 label = { Text(text = "Scoutkommentare") },
             )
             // Ergebnisbereich
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(10.dp)
-            ) {
-                val stateVertical = rememberScrollState(0)
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(stateVertical)
-                        .padding(end = 12.dp, bottom = 12.dp)
-                ) {
-                    Column {
-                        Text("${scoutCommentList.size} Spieler gefunden")
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(7.dp),
-                            modifier = Modifier.fillMaxHeight(1F)
-                        ) {
-                            scoutCommentList.map { scoutComment ->
-                                Card(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    elevation = 10.dp,
-                                ) {
-                                    Column(modifier = Modifier.padding(5.dp)) {
-                                        Text(
-                                            "Name: ${scoutComment.name}",
-                                            modifier = Modifier.fillMaxWidth(),
-                                        )
-                                        Text(
-                                            "Alter: ${scoutComment.age.years}",
-                                            modifier = Modifier.fillMaxWidth(),
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                VerticalScrollbar(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .fillMaxHeight(),
-                    style = ScrollbarStyle(
-                        minimalHeight = 16.dp,
-                        thickness = 8.dp,
-                        shape = MaterialTheme.shapes.small,
-                        hoverDurationMillis = 300,
-                        unhoverColor = MaterialTheme.colors.primary.copy(alpha = 0.42f),
-                        hoverColor = MaterialTheme.colors.primary,
-                    ),
-                    adapter = rememberScrollbarAdapter(stateVertical)
-                )
-            }
+            Preview(scoutCommentList)
         }
     }
 
+}
+
+@Composable
+fun Preview(scoutCommentList: List<ScoutComment>) {
+    Column {
+        Text(
+            "${scoutCommentList.size} Spieler gefunden",
+            modifier = Modifier
+                .padding(start = 5.dp, end = 5.dp, top = 5.dp)
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp)
+        ) {
+            val scrollState = rememberLazyListState()
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(end = 12.dp),
+                state = scrollState,
+            ) {
+                items(scoutCommentList) { scoutComment ->
+                    Card(
+                        modifier = Modifier
+                            .padding(0.dp, 5.dp)
+                            .fillMaxWidth(),
+                        elevation = 10.dp,
+                    ) {
+                        Column(modifier = Modifier.padding(5.dp)) {
+                            Text(
+                                "Name: ${scoutComment.name}",
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            Text(
+                                "Alter: ${scoutComment.age.years}",
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
+                }
+            }
+            VerticalScrollbar(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .fillMaxHeight(),
+                style = ScrollbarStyle(
+                    minimalHeight = 16.dp,
+                    thickness = 8.dp,
+                    shape = MaterialTheme.shapes.small,
+                    hoverDurationMillis = 300,
+                    unhoverColor = MaterialTheme.colors.primary.copy(alpha = 0.42f),
+                    hoverColor = MaterialTheme.colors.primary,
+                ),
+                adapter = rememberScrollbarAdapter(scrollState)
+            )
+        }
+    }
 }
