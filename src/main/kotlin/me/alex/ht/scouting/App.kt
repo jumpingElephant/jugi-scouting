@@ -45,7 +45,7 @@ fun App() {
             // Eingabefeld für Scoutkommentare
             TextField(
                 scoutComments,
-                maxLines = 19,
+//                maxLines = 19,
                 modifier = Modifier.fillMaxWidth(0.5f),
                 onValueChange = {
                     scoutComments = it
@@ -90,15 +90,15 @@ fun Preview(scoutCommentList: List<ScoutComment>) {
                     ) {
                         Column(modifier = Modifier.padding(5.dp)) {
                             Text(
-                                "Name: ${scoutComment.name}",
+                                "Name: ${scoutComment.name} (${scoutComment.occurrences})",
                                 modifier = Modifier.fillMaxWidth(),
                             )
                             Text(
                                 "Alter: ${scoutComment.age.years}",
                                 modifier = Modifier.fillMaxWidth(),
                             )
-                            scoutComment.skill?.let { Text("Fähigkeit: ${it.skillType.label}=${it.value}") }
-                            scoutComment.potential?.let { Text("Potential: ${it.skillType.label}=${it.value}") }
+                            scoutComment.skill?.let { Text("Fähigkeit: ${it.type.label}=${it.level.label()}") }
+                            scoutComment.potential?.let { Text("Potential: ${it.type.label}=${it.level.label()}") }
                         }
                     }
                 }

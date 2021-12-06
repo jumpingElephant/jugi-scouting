@@ -17,11 +17,17 @@ object CommentParser {
         """Dieser Spieler hat es bis jetzt in Sachen (?<skill>.*) auf (?<value>.*) gebracht""".toRegex(),
         """Ohne weiteres Training wird dieser Spieler in Sachen (?<skill>.*) nicht über (?<value>.*) hinauskommen""".toRegex(),
         """Ich würde seine Fähigkeiten in (?<skill>.*) zurzeit ungefähr auf (?<value>.*) schätzen""".toRegex(),
+        """This player has Skill (?<value>.*) (?<skill>.*) at this point in his career""".toRegex(),
+        """Without any further training, this player will remain with (?<value>.*) (?<skill>.*)""".toRegex(),
+        """Right now I would say his (?<skill>.*) capabilities are around the (?<value>.*) level""".toRegex(),
     )
     val potentialRegexList = listOf(
         """Ehe du dich versiehst, könnte dieser Spieler in (?<skill>.*) (?<value>.*) werden, falls du ihn richtig trainierst""".toRegex(),
         """Wenn sich der Kerl richtig entwickelt, könnte er in meinen Augen in (?<skill>.*) (?<value>.*) werden, bis zu seiner Aufnahme in die erste Mannschaft""".toRegex(),
         """Wenn er die Chance erhält, seine Fähigkeiten in (?<skill>.*) zu verbessern, könnte dieser Spieler darin (?<value>.*) werden""".toRegex(),
+        """Coach this player right and he will reach his potential of (?<value>.*) (?<skill>.*) before you know it""".toRegex(),
+        """If he develops well, I would say this chap can emerge with (?<value>.*) (?<skill>.*) before joining the senior squad""".toRegex(),
+        """Given the chance to improve his (?<skill>.*) skills, this guy might well reach (?<value>.*) in that department""".toRegex(),
     )
     val allrounderRegexList = listOf(
         """Ich würde sagen, seine Fähigkeiten als Allrounder sind als (?<value>.*) einzustufen""".toRegex(),
@@ -79,6 +85,10 @@ object CommentParser {
         val resilientMatchResults = listMatchResults(comments, resilientRegexList)
         val supporterMatchResults = listMatchResults(comments, supporterRegexList)
 
+        val eachPlayerCount = introMatchResults
+            .mapNotNull { it.groups["name"]?.value }.groupingBy { it }
+            .eachCount()
+
         return introMatchResults.mapIndexed { index, introMatchResult ->
             val nextIntroMatchResult = introMatchResults.getOrNull(index + 1)
             val associatedSkillMatchResult =
@@ -91,20 +101,28 @@ object CommentParser {
             val nameMatchGroup = introMatchResult.groups["name"]
             val skill = associatedSkillMatchResult?.let {
                 skillTypeOf(associatedSkillMatchResult.groups["skill"]?.value ?: "")?.let {
-                    Skill(
-                        it, associatedSkillMatchResult.groups["value"]?.value ?: ""
-                    )
+                    skillLevelOf(associatedSkillMatchResult.groups["value"]!!.value)?.let { skillLevelName ->
+                        Skill(
+                            it, skillLevelName
+                        )
+                    }
                 }
             }
             val potential = associatedPotentialMatchResult?.let {
                 skillTypeOf(associatedPotentialMatchResult.groups["skill"]?.value ?: "")?.let {
-                    Skill(
-                        it, associatedPotentialMatchResult.groups["value"]?.value ?: ""
-                    )
+                    skillLevelOf(associatedPotentialMatchResult.groups["value"]!!.value)?.let { skillLevelName ->
+                        Skill(
+                            it, skillLevelName
+                        )
+                    }
                 }
             }
             ScoutComment(
-                nameMatchGroup!!.value, Age(ageMatchGroup!!.value.toInt(), null), skill, potential
+                nameMatchGroup!!.value,
+                Age(ageMatchGroup!!.value.toInt(), null),
+                skill,
+                potential,
+                eachPlayerCount.getOrDefault(nameMatchGroup.value, 0)
             )
         }
     }
@@ -124,20 +142,83 @@ object CommentParser {
         regexes.flatMap { it.findAll(comments) }.sortedBy { matchResult -> matchResult.range.first }.toList()
 }
 
-data class ScoutComment(val name: String, val age: Age, val skill: Skill?, val potential: Skill?)
+data class ScoutComment(val name: String, val age: Age, val skill: Skill?, val potential: Skill?, val occurrences: Int)
 
 data class Age(val years: Int, val days: Int?)
 
 fun skillTypeOf(name: String): SkillType? {
     return when (name) {
         "Torwart" -> SkillType.GK
+        "Goalkeeping" -> SkillType.GK
         "Verteidigung" -> SkillType.DF
+        "Defending" -> SkillType.DF
         "Spielaufbau" -> SkillType.PM
+        "Playmaking" -> SkillType.PM
         "Flügelspiel" -> SkillType.WI
+        "Winger" -> SkillType.WI
         "Torschuss" -> SkillType.SC
+        "Scoring" -> SkillType.SC
         "Passspiel" -> SkillType.PS
+        "Passing" -> SkillType.PS
         else -> null
     }
+}
+
+val levels_german = listOf(
+    "göttlich",
+    "galaktisch",
+    "märchenhaft",
+    "mythisch",
+    "außerirdisch",
+    "gigantisch",
+    "übernatürlich",
+    "Weltklasse",
+    "fantastisch",
+    "brillant",
+    "großartig",
+    "hervorragend",
+    "sehr gut",
+    "gut",
+    "passabel",
+    "durchschnittlich",
+    "schwach",
+    "armselig",
+    "erbärmlich",
+    "katastrophal",
+    "nicht vorhanden"
+).reversed()
+val levels_english = listOf(
+    "divine",
+    "utopian",
+    "magical",
+    "mythical",
+    "extra-terrestrial",
+    "titanic",
+    "supernatural",
+    "world class",
+    "magnificent",
+    "brilliant",
+    "outstanding",
+    "formidable",
+    "excellent",
+    "solid",
+    "passable",
+    "inadequate",
+    "weak",
+    "poor",
+    "wretched",
+    "disastrous",
+    "non-existent",
+).reversed()
+
+fun skillLevelOf(name: String): SkillLevel? {
+    if (levels_german.contains(name)) {
+        return SkillLevel(levels_german.indexOf(name))
+    }
+    if (levels_english.contains(name)) {
+        return SkillLevel(levels_english.indexOf(name))
+    }
+    return null
 }
 
 enum class SkillType(val label: String) {
@@ -150,4 +231,11 @@ enum class SkillType(val label: String) {
     SP("Standards");
 }
 
-data class Skill(val skillType: SkillType, val value: String)
+data class SkillLevel(val value: Int) {
+    fun label(): String {
+        return levels_german[value]
+    }
+}
+
+
+data class Skill(val type: SkillType, val level: SkillLevel)
