@@ -97,6 +97,8 @@ fun Preview(scoutCommentList: List<ScoutComment>) {
                                 "Alter: ${scoutComment.age.years}",
                                 modifier = Modifier.fillMaxWidth(),
                             )
+                            scoutComment.skill?.let { Text("Fähigkeit: ${it.skillType.label}=${it.value}") }
+                            scoutComment.potential?.let { Text("Potential: ${it.skillType.label}=${it.value}") }
                         }
                     }
                 }
