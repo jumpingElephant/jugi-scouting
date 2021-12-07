@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,12 +39,23 @@ fun App() {
                 elevation = 10.dp,
             )
             {
-                Button(onClick = { scoutComments = TextFieldValue(""); scoutCommentList = emptyList() }) {
-                    Icon(
-                        imageVector = Icons.Default.RestartAlt,
-                        contentDescription = "Scoutkommentare leeren"
-                    )
-                    Text("Neue Kommentare")
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Button(onClick = { scoutComments = TextFieldValue(""); scoutCommentList = emptyList() }) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteForever,
+                            contentDescription = "alles leeren"
+                        )
+                        Text("alles leeren")
+                    }
+                    Button(onClick = {
+                        scoutCommentList = CommentParser.parse(scoutComments.text)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.RestartAlt,
+                            contentDescription = "Scoutkommentare auswerten"
+                        )
+                        Text("auswerten")
+                    }
                 }
             }
         }
@@ -56,12 +68,11 @@ fun App() {
                 modifier = Modifier.fillMaxWidth(0.5f),
                 onValueChange = {
                     scoutComments = it
-                    scoutCommentList = CommentParser.parse(scoutComments.text)
                 },
                 label = { Text(text = "Scoutkommentare") },
             )
             // Ergebnisbereich
-            Preview(scoutCommentList.filter { it.occurrences > 1 })
+            Preview(scoutCommentList)
         }
     }
 
