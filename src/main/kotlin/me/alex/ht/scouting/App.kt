@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import me.alex.ht.scouting.data.ScoutCommentsSample
 import me.alex.ht.scouting.parser.CommentParser
@@ -60,7 +61,7 @@ fun App() {
                 label = { Text(text = "Scoutkommentare") },
             )
             // Ergebnisbereich
-            Preview(scoutCommentList)
+            Preview(scoutCommentList.filter { it.occurrences > 1 })
         }
     }
 
@@ -95,20 +96,37 @@ fun Preview(scoutCommentList: List<ScoutComment>) {
                         elevation = 10.dp,
                     ) {
                         Column(modifier = Modifier.padding(5.dp)) {
-                            Text(
-                                "Name: ${scoutComment.name} (${scoutComment.occurrences})",
+                            Row(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                scoutComment.postedAt?.let {
+                                    Text(
+                                        scoutComment.postedAt.format(CommentParser.postDateTimeFormatter),
+                                    )
+                                }
+                                Text(
+                                    " (${scoutComment.occurrences})",
+                                )
+                            }
+                            Row(
                                 modifier = Modifier.fillMaxWidth(),
-                            )
-                            Text(
-                                "Alter: ${scoutComment.age.years}",
-                                modifier = Modifier.fillMaxWidth(),
-                            )
+                            ) {
+                                Text(
+                                    scoutComment.name,
+                                )
+                                Text(
+                                    "Alter: ${scoutComment.age.years}",
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.End
+                                )
+                            }
                             scoutComment.skill?.let { Text("Fähigkeit: ${it.type.label}=${it.level.label()}") }
                             scoutComment.potential?.let { Text("Potential: ${it.type.label}=${it.level.label()}") }
                         }
                     }
                 }
             }
+            // https://github.com/JetBrains/compose-jb/tree/master/tutorials/Desktop_Components
             VerticalScrollbar(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)

@@ -1,8 +1,11 @@
 package me.alex.ht.scouting.parser
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 object CommentParser {
 
-    val introRegexList = listOf(
+    private val introRegexList = listOf(
         """Er ist (?<age>\d+) Jahre alt und hört auf den Namen (?<name>.*)\.""".toRegex(),
         """der Kandidat dieser Woche ist (?<age>\d+) Jahre alt und heißt (?<name>.*)\.""".toRegex(),
         """zur Sache: (?<name>.*) ist (?<age>\d+) Jahre alt""".toRegex(),
@@ -13,7 +16,7 @@ object CommentParser {
         """His name is (?<name>.*) and he is (?<age>\d+) years old""".toRegex(),
         """\b(?<name>.*) looks promising. He is (?<age>\d+) years old""".toRegex(),
     )
-    val skillRegexList = listOf(
+    private val skillRegexList = listOf(
         """Dieser Spieler hat es bis jetzt in Sachen (?<skill>.*) auf (?<value>.*) gebracht""".toRegex(),
         """Ohne weiteres Training wird dieser Spieler in Sachen (?<skill>.*) nicht über (?<value>.*) hinauskommen""".toRegex(),
         """Ich würde seine Fähigkeiten in (?<skill>.*) zurzeit ungefähr auf (?<value>.*) schätzen""".toRegex(),
@@ -21,7 +24,7 @@ object CommentParser {
         """Without any further training, this player will remain with (?<value>.*) (?<skill>.*)""".toRegex(),
         """Right now I would say his (?<skill>.*) capabilities are around the (?<value>.*) level""".toRegex(),
     )
-    val potentialRegexList = listOf(
+    private val potentialRegexList = listOf(
         """Ehe du dich versiehst, könnte dieser Spieler in (?<skill>.*) (?<value>.*) werden, falls du ihn richtig trainierst""".toRegex(),
         """Wenn sich der Kerl richtig entwickelt, könnte er in meinen Augen in (?<skill>.*) (?<value>.*) werden, bis zu seiner Aufnahme in die erste Mannschaft""".toRegex(),
         """Wenn er die Chance erhält, seine Fähigkeiten in (?<skill>.*) zu verbessern, könnte dieser Spieler darin (?<value>.*) werden""".toRegex(),
@@ -29,46 +32,49 @@ object CommentParser {
         """If he develops well, I would say this chap can emerge with (?<value>.*) (?<skill>.*) before joining the senior squad""".toRegex(),
         """Given the chance to improve his (?<skill>.*) skills, this guy might well reach (?<value>.*) in that department""".toRegex(),
     )
-    val allrounderRegexList = listOf(
+    private val allrounderRegexList = listOf(
         """Ich würde sagen, seine Fähigkeiten als Allrounder sind als (?<value>.*) einzustufen""".toRegex(),
         """Seine Fähigkeiten sind meiner Einschätzung nach insgesamt (?<value>.*)""".toRegex(),
         """Mit seinen Fähigkeiten, die ich insgesamt als (?<value>.*) bezeichnen würde""".toRegex(),
     )
-    val headerRegexList = listOf(
+    private val headerRegexList = listOf(
         """Er ist ein Naturtalent für Zweikämpfe hoch in der Luft und wird in der Lage sein, diesen Vorteil sowohl in der Offensive als auch in der Defensive zu nutzen""".toRegex(),
         """Dieser Junge ist größer als die meisten anderen in seinem Alter, diesen Vorteil weiß er zu nutzen\. Auf sein anständiges Kopfballspiel kannst du dich verlassen""".toRegex(),
         """Dieser Spieler ist auf dem Platz hinsichtlich einer Fähigkeit besonders präsent\. Seine Kopfballstärke macht ihn zu einem besonderen Spezialisten""".toRegex(),
     )
-    val powerfulRegexList = listOf(
+    private val powerfulRegexList = listOf(
         """Dieser Spieler ist ganz schön durchsetzungsstark für sein Alter\. Mit seiner immensen Physis dürfte er - und da bin ich mir sicher - einen Vorteil gegenüber seinen Gegenspielern haben, wenn es zu einer robusten Auseinandersetzung kommt""".toRegex(),
         """Einfach nur ein Junge, der von seinem Erscheinungsbild her durchsetzungsstark zu sein scheint\. Ich bin gespannt, wie sich das auf sein Spiel auswirkt""".toRegex(),
         """Er hat den Körperbau eines erwachsenen Mannes - das verschafft ihm einen gewissen Vorteil, um so durchsetzungsstark zu sein""".toRegex(),
     )
-    val unpredictableRegexList = listOf(
+    private val unpredictableRegexList = listOf(
         """Nun, was soll ich sagen? Er ist ein ewiges Rätsel, als Spieler unberechenbar\. Falls du weißt, wie du dir das zu Nutze machen kannst, könnte er von Interesse für dich sein""".toRegex(),
         """Wenn du über diesen Spieler nachdenkst, vergiss nicht, dass er einfach unberechenbar ist und mitunter außer Rand und Band gerät\. Einerseits kann er geistige Aussetzer haben, andererseits auch geniale Momente""".toRegex(),
         """Der Spieler ist unberechenbar, und ich weiß nicht, ob wir ihn in der Hinsicht ändern können\. Es ist einfach seine Art""".toRegex(),
     )
-    val technicalRegexList = listOf(
+    private val technicalRegexList = listOf(
         """Man kann immer wieder beobachten, wie dieser Junge im Training mit dem Ball zaubert - das ist eines seiner wesentlichen Merkmale""".toRegex(),
         """Dieser Spieler ist ein Ballzauberer, das kann man schon von weitem sehen\. Bedenke das, wenn du dein Team zusammenstellst""".toRegex(),
         """Es ist schwer diesen Spieler einzuschätzen, ohne seine Ballzauberer-Fähigkeit zu erwähnen\. Er scheint mit dem Ball einiges anstellen zu können""".toRegex(),
     )
-    val quickRegexList = listOf(
+    private val quickRegexList = listOf(
         """Dieser Spieler ist zweifellos schnell, was für einen Fußballer in seinem Alter niemals verkehrt sein kann""".toRegex(),
         """Der hier ist ein kleiner Flitzer - immer in Bewegung, schneller als viele andere\. Ich hoffe, er lernt diese Fähigkeit auf dem Feld zu nutzen""".toRegex(),
         """Dieser Spieler ist wertvoll, er ist sehr schnell\. Was er jetzt nur noch lernen muss, ist Fußball zu spielen""".toRegex(),
     )
-    val resilientRegexList = listOf(
+    private val resilientRegexList = listOf(
         """Ich hörte davon, dass sich dieser Spieler nach einer erlittenen Verletzung schneller als viele andere erholt\. Hoffentlich muss er uns das niemals beweisen""".toRegex(),
         """Auch wenn dieser Junge nach nichts besonderem aussieht, so sagen uns zumindest die Ärzte, dass er bei einer Verletzung ansprechende Rehabilitationskräfte freisetzt""".toRegex(),
         """An diesem Spieler sitzt unglaublich gutes Heilfleisch, ich schätze, dass ist irgendwie genetisch bedingt""".toRegex(),
     )
-    val supporterRegexList = listOf(
+    private val supporterRegexList = listOf(
         """Dieser junge Mann ist sich nie zu schade, seinen Freunden zu helfen, auch wenn das für ihn zusätzliche Arbeit bedeutet\. Diesen Charakterzug zeigt er auch immer wieder auf dem Spielfeld""".toRegex(),
         """Dieser junge Mann scheint mir mannschaftsdienlich zu sein\. Jemand, der nicht nur seine Aufgaben erledigt, sondern auch seine Mitspieler unterstützt""".toRegex(),
         """Eine Bemerkung sei mir erlaubt, viele junge Spieler denken heute nur noch an sich selbst und ihre Karriere\. Bei diesem Kandidaten ist das anders, für ihn steht der Erfolg des Teams über allem""".toRegex(),
     )
+    private val metadataRegex = """(?<datetime>\d{2}\.\d{2}\.\d{4} \d{2}:\d{2})""".toRegex()
+
+    val postDateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
 
     fun parse(comments: String): List<ScoutComment> {
 
@@ -84,6 +90,7 @@ object CommentParser {
         val quickMatchResults = listMatchResults(comments, quickRegexList)
         val resilientMatchResults = listMatchResults(comments, resilientRegexList)
         val supporterMatchResults = listMatchResults(comments, supporterRegexList)
+        val metadataMatchResults = listMatchResults(comments, listOf(metadataRegex))
 
         val eachPlayerCount = introMatchResults
             .mapNotNull { it.groups["name"]?.value }.groupingBy { it }
@@ -96,30 +103,25 @@ object CommentParser {
             val associatedPotentialMatchResult = findAssociatedMatchResults(
                 potentialMatchResults, introMatchResult, nextIntroMatchResult
             ).firstOrNull()
+            val metadataMatchResult = findPrefixedMatchResults(metadataMatchResults, introMatchResult)
 
             val ageMatchGroup = introMatchResult.groups["age"]
             val nameMatchGroup = introMatchResult.groups["name"]
-            val skill = associatedSkillMatchResult?.let {
-                skillTypeOf(associatedSkillMatchResult.groups["skill"]?.value ?: "")?.let {
-                    skillLevelOf(associatedSkillMatchResult.groups["value"]!!.value)?.let { skillLevelName ->
-                        Skill(
-                            it, skillLevelName
-                        )
-                    }
+
+            val skill = extractSkill(associatedSkillMatchResult)
+            val potential = extractSkill(associatedPotentialMatchResult)
+            val postedAt = metadataMatchResult
+                ?.let {
+                    LocalDateTime.parse(
+                        metadataMatchResult.groups["datetime"]?.value,
+                        postDateTimeFormatter
+                    )
                 }
-            }
-            val potential = associatedPotentialMatchResult?.let {
-                skillTypeOf(associatedPotentialMatchResult.groups["skill"]?.value ?: "")?.let {
-                    skillLevelOf(associatedPotentialMatchResult.groups["value"]!!.value)?.let { skillLevelName ->
-                        Skill(
-                            it, skillLevelName
-                        )
-                    }
-                }
-            }
+
             ScoutComment(
                 nameMatchGroup!!.value,
                 Age(ageMatchGroup!!.value.toInt(), null),
+                postedAt,
                 skill,
                 potential,
                 eachPlayerCount.getOrDefault(nameMatchGroup.value, 0)
@@ -127,22 +129,45 @@ object CommentParser {
         }
     }
 
+    private fun extractSkill(associatedPotentialMatchResult: MatchResult?): Skill? {
+        return associatedPotentialMatchResult?.let {
+            skillTypeOf(associatedPotentialMatchResult.groups["skill"]?.value ?: "")?.let {
+                skillLevelOf(associatedPotentialMatchResult.groups["value"]!!.value)?.let { skillLevelName ->
+                    Skill(
+                        it, skillLevelName
+                    )
+                }
+            }
+        }
+    }
+
     private fun findAssociatedMatchResults(
-        skillMatchResults: List<MatchResult>, introMatchResult: MatchResult, nextIntroMatchResult: MatchResult?
-    ) = skillMatchResults.dropWhile { paMatchResult -> paMatchResult.range.last < introMatchResult.range.first }
-        .takeWhile { paMatchResult ->
-            if (nextIntroMatchResult != null) {
-                paMatchResult.range.last < nextIntroMatchResult.range.first
+        skillMatchResults: List<MatchResult>, matchResult: MatchResult, nextMatchResult: MatchResult?
+    ) = skillMatchResults.dropWhile { it.range.last < matchResult.range.first }
+        .takeWhile {
+            if (nextMatchResult != null) {
+                it.range.last < nextMatchResult.range.first
             } else {
                 true
             }
         }
 
+    private fun findPrefixedMatchResults(
+        feasibleMatchResults: List<MatchResult>, matchResult: MatchResult
+    ) = feasibleMatchResults.takeWhile { it.range.first < matchResult.range.last }.lastOrNull()
+
     private fun listMatchResults(comments: String, regexes: List<Regex>) =
         regexes.flatMap { it.findAll(comments) }.sortedBy { matchResult -> matchResult.range.first }.toList()
 }
 
-data class ScoutComment(val name: String, val age: Age, val skill: Skill?, val potential: Skill?, val occurrences: Int)
+data class ScoutComment(
+    val name: String,
+    val age: Age,
+    val postedAt: LocalDateTime?,
+    val skill: Skill?,
+    val potential: Skill?,
+    val occurrences: Int
+)
 
 data class Age(val years: Int, val days: Int?)
 
