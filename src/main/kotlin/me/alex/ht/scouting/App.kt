@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package me.alex.ht.scouting
 
 import androidx.compose.foundation.ScrollbarStyle
@@ -15,15 +17,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import me.alex.ht.scouting.data.ScoutCommentsSample
 import me.alex.ht.scouting.parser.CommentParser
 import me.alex.ht.scouting.parser.ScoutComment
+
+val applicationProperties = LocalApplicationProperties
 
 @Suppress("FunctionName")
 @Composable
 fun App() {
 
-    var scoutComments by remember { mutableStateOf(TextFieldValue("")) }
-    var scoutCommentList: List<ScoutComment> by remember { mutableStateOf(emptyList()) }
+    val appState = applicationProperties.current
+    var scoutComments by remember { mutableStateOf(TextFieldValue(if (appState.isDevMode()) ScoutCommentsSample.getSample() else "")) }
+    var scoutCommentList: List<ScoutComment> by remember { mutableStateOf(CommentParser.parse(scoutComments.text)) }
 
     Scaffold(
         topBar = {
