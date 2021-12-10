@@ -18,7 +18,7 @@ fun main() = application {
     Window(
         title = "Jugi Scouting!",
         onCloseRequest = ::exitApplication,
-        state = WindowState(size = WindowSize(962.dp, 768.dp))
+        state = WindowState(size = WindowSize(1028.dp, 768.dp))
     ) {
         val applicationProperties = ApplicationProperties()
         CompositionLocalProvider(

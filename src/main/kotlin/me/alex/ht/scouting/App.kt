@@ -11,12 +11,14 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Backspace
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.SaveAlt
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -75,7 +77,6 @@ fun App() {
             // Eingabefeld für Scoutkommentare
             TextField(
                 scoutComments,
-//                maxLines = 19,
                 modifier = Modifier.fillMaxWidth(0.5f),
                 onValueChange = {
                     scoutComments = it
@@ -92,11 +93,27 @@ fun App() {
 @Composable
 fun Preview(scoutCommentList: List<ScoutComment>) {
     Column {
-        Text(
-            "${scoutCommentList.size} Spieler gefunden",
-            modifier = Modifier
-                .padding(start = 5.dp, end = 5.dp, top = 5.dp)
-        )
+        var filterText by remember { mutableStateOf(TextFieldValue("")) }
+        Row {
+            Text(
+                "${scoutCommentList.size} Spieler",
+                modifier = Modifier
+                    .padding(start = 5.dp, end = 5.dp, top = 5.dp)
+            )
+            TextField(
+                filterText,
+                onValueChange = { filterText = it },
+                label = { Text("Suche") },
+                trailingIcon = {
+                    Button({ filterText = TextFieldValue("") }, shape = RectangleShape) {
+                        Icon(
+                            imageVector = Icons.Default.Backspace,
+                            contentDescription = "clear"
+                        )
+                    }
+                }
+            )
+        }
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -110,7 +127,15 @@ fun Preview(scoutCommentList: List<ScoutComment>) {
                     .padding(end = 12.dp),
                 state = scrollState,
             ) {
-                items(scoutCommentList) { scoutComment ->
+                items(
+                    items = (if (filterText.text.isBlank()) {
+                        scoutCommentList
+                    } else {
+                        val regex = filterText.text.replace("""\W+""".toRegex(), "")
+                            .toRegex(option = RegexOption.IGNORE_CASE)
+                        scoutCommentList.filter { it.name.contains(regex) }
+                    })
+                ) { scoutComment ->
                     Card(
                         modifier = Modifier
                             .padding(0.dp, 5.dp)
