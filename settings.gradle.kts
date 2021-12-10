@@ -6,5 +6,4 @@ pluginManagement {
     }
 
 }
-rootProject.name = "untitled"
-
+rootProject.name = "jugi-scouting"
