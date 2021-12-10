@@ -127,7 +127,34 @@ object CommentParser {
             val associatedPotentialMatchResult = findAssociatedMatchResults(
                 potentialMatchResults, introMatchResult, nextIntroMatchResult
             ).firstOrNull()
+            val associatedAllrounderMatchResult =
+                findAssociatedMatchResults(allrounderMatchResults, introMatchResult, nextIntroMatchResult).firstOrNull()
+            val associatedSpecialityMatchResults = findAssociatedMatchResults(
+                listOfNotNull(
+                    headerMatchResults,
+                    powerfulMatchResults,
+                    unpredictableMatchResults,
+                    technicalMatchResults,
+                    quickMatchResults,
+                    resilientMatchResults,
+                    supporterMatchResults
+                ).flatten(),
+                introMatchResult,
+                nextIntroMatchResult
+            ).firstOrNull()
             val metadataMatchResult = findPrefixedMatchResults(metadataMatchResults, introMatchResult)
+
+            val sortedByAppearanceMatchResults = listOfNotNull(
+                introMatchResult,
+                associatedSkillMatchResult,
+                associatedPotentialMatchResult,
+                associatedAllrounderMatchResult,
+                associatedSpecialityMatchResults
+            ).sortedBy { it.range.first }.toList()
+            val comment = comments.subSequence(
+                sortedByAppearanceMatchResults.first().range.first,
+                sortedByAppearanceMatchResults.last().range.last + 1
+            )
 
             val ageMatchGroup = introMatchResult.groups["age"]
             val nameMatchGroup = introMatchResult.groups["name"]
@@ -148,7 +175,8 @@ object CommentParser {
                 postedAt,
                 skill,
                 potential,
-                eachPlayerCount.getOrDefault(nameMatchGroup.value, 0)
+                eachPlayerCount.getOrDefault(nameMatchGroup.value, 0),
+                comment
             )
         }
     }
@@ -190,7 +218,8 @@ data class ScoutComment(
     val postedAt: LocalDateTime?,
     val skill: Skill?,
     val potential: Skill?,
-    val occurrences: Int
+    val occurrences: Int,
+    val comment: CharSequence
 )
 
 data class Age(val years: Int, val days: Int?)
