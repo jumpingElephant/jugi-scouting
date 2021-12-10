@@ -13,12 +13,14 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.filled.SaveAlt
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import me.alex.ht.scouting.data.Exporter
 import me.alex.ht.scouting.data.ScoutCommentsSample
 import me.alex.ht.scouting.parser.CommentParser
 import me.alex.ht.scouting.parser.ScoutComment
@@ -55,6 +57,15 @@ fun App() {
                             contentDescription = "Scoutkommentare auswerten"
                         )
                         Text("auswerten")
+                    }
+                    Button(onClick = {
+                        Exporter.exportDatesAndCommentsNewLineSeparated(scoutCommentList)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.SaveAlt,
+                            contentDescription = "Kommentare speichern"
+                        )
+                        Text("Kommentare speichern")
                     }
                 }
             }
