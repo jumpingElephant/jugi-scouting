@@ -131,9 +131,20 @@ fun Preview(scoutCommentList: List<ScoutComment>) {
                     items = (if (filterText.text.isBlank()) {
                         scoutCommentList
                     } else {
-                        val regex = filterText.text.replace("""\W+""".toRegex(), "")
-                            .toRegex(option = RegexOption.IGNORE_CASE)
-                        scoutCommentList.filter { it.name.contains(regex) }
+                        val regex = filterText.text
+                            .replace("ä", "a")
+                            .replace("ö", "o")
+                            .replace("ü", "u")
+                            .replace("ß", "s")
+                            .replace("""\W+""".toRegex(), "")
+                            .toRegex(options = setOf(RegexOption.IGNORE_CASE, RegexOption.CANON_EQ))
+                        scoutCommentList.filter {
+                            it.name.replace("ä", "a")
+                                .replace("ö", "o")
+                                .replace("ü", "u")
+                                .replace("ß", "s")
+                                .contains(regex)
+                        }
                     })
                 ) { scoutComment ->
                     Card(
