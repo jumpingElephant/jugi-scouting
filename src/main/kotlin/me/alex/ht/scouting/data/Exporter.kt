@@ -12,6 +12,7 @@ object Exporter {
         val fileLocation = File(getLocalDiretory(), "exports")
         val commentsFile = File(fileLocation, "comments-export_${Instant.now().toEpochMilli()}.dat")
         val datesFile = File(fileLocation, "dates-export_${Instant.now().toEpochMilli()}.dat")
+        val dateAcceptedCommentsFile = File(fileLocation, "full-export_${Instant.now().toEpochMilli()}.csv")
         if (fileLocation.exists().not()) {
             commentsFile.parentFile.mkdirs()
         }
@@ -20,6 +21,11 @@ object Exporter {
         })
         datesFile.writeText(scoutComments.joinToString(separator = "\n") {
             (it.postedAt?.format(dateTimeFormatter) ?: "")
+        })
+        dateAcceptedCommentsFile.writeText(scoutComments.joinToString(separator = "\n") {
+            (it.postedAt?.format(dateTimeFormatter) ?: "") + "," +
+                    (it.accepted?.let { accepted -> if (accepted) "Ja" else "Nein" } ?: "") + "," +
+                    "\"" + it.comment.replace("""\n""".toRegex(), "") + "\""
         })
     }
 }
