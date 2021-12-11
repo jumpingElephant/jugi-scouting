@@ -93,7 +93,6 @@ fun App() {
             Preview(scoutCommentList)
         }
     }
-
 }
 
 @Composable
@@ -137,20 +136,7 @@ fun Preview(scoutCommentList: List<ScoutComment>) {
                     items = (if (filterText.text.isBlank()) {
                         scoutCommentList
                     } else {
-                        val regex = filterText.text
-                            .replace("ä", "a")
-                            .replace("ö", "o")
-                            .replace("ü", "u")
-                            .replace("ß", "s")
-                            .replace("""\W+""".toRegex(), "")
-                            .toRegex(options = setOf(RegexOption.IGNORE_CASE, RegexOption.CANON_EQ))
-                        scoutCommentList.filter {
-                            it.name.replace("ä", "a")
-                                .replace("ö", "o")
-                                .replace("ü", "u")
-                                .replace("ß", "s")
-                                .contains(regex)
-                        }
+                        scoutCommentList.filter(function(filterText.text))
                     })
                 ) { scoutComment ->
                     Card(
@@ -159,34 +145,7 @@ fun Preview(scoutCommentList: List<ScoutComment>) {
                             .fillMaxWidth(),
                         elevation = 10.dp,
                     ) {
-                        Column(modifier = Modifier.padding(5.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                scoutComment.postedAt?.let {
-                                    Text(
-                                        scoutComment.postedAt.format(CommentParser.postDateTimeFormatter),
-                                    )
-                                }
-                                Text(
-                                    " (${scoutComment.occurrences})",
-                                )
-                            }
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Text(
-                                    scoutComment.name,
-                                )
-                                Text(
-                                    "Alter: ${scoutComment.age.years}",
-                                    modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.End
-                                )
-                            }
-                            scoutComment.skill?.let { Text("Fähigkeit: ${it.type.label}=${it.level.label()}") }
-                            scoutComment.potential?.let { Text("Potential: ${it.type.label}=${it.level.label()}") }
-                        }
+                        PlayerPreview(scoutComment)
                     }
                 }
             }
@@ -207,4 +166,60 @@ fun Preview(scoutCommentList: List<ScoutComment>) {
             )
         }
     }
+}
+
+@Composable
+private fun PlayerPreview(scoutComment: ScoutComment) {
+    Column(modifier = Modifier.padding(5.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            scoutComment.postedAt?.let {
+                Text(
+                    scoutComment.postedAt.format(CommentParser.postDateTimeFormatter),
+                )
+            }
+            Text(
+                " (${scoutComment.occurrences})",
+            )
+            scoutComment.accepted
+                ?.let {
+                    Text(
+                        if (it) "aufgenommen" else "abgelehnt",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.End
+                    )
+                }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(
+                scoutComment.name,
+            )
+            Text(
+                "Alter: ${scoutComment.age.years}",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.End
+            )
+        }
+        scoutComment.skill?.let { Text("Fähigkeit: ${it.type.label}=${it.level.label()}") }
+        scoutComment.potential?.let { Text("Potential: ${it.type.label}=${it.level.label()}") }
+    }
+}
+
+private fun function(text: String): (ScoutComment) -> Boolean = fun(it: ScoutComment): Boolean {
+    val regex = text
+        .replace("ä", "a")
+        .replace("ö", "o")
+        .replace("ü", "u")
+        .replace("ß", "s")
+        .replace("""\W+""".toRegex(), "")
+        .toRegex(options = setOf(RegexOption.IGNORE_CASE, RegexOption.CANON_EQ))
+    return it.name
+        .replace("ä", "a")
+        .replace("ö", "o")
+        .replace("ü", "u")
+        .replace("ß", "s")
+        .contains(regex)
 }

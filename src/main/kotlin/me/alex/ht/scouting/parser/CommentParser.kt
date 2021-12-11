@@ -120,6 +120,7 @@ object CommentParser {
             .mapNotNull { it.groups["name"]?.value }.groupingBy { it }
             .eachCount()
 
+        val playerAcceptedRegex = """\b(ja|nein)\b""".toRegex(RegexOption.IGNORE_CASE)
         return introMatchResults.mapIndexed { index, introMatchResult ->
             val nextIntroMatchResult = introMatchResults.getOrNull(index + 1)
             val associatedSkillMatchResult =
@@ -155,6 +156,32 @@ object CommentParser {
                 sortedByAppearanceMatchResults.first().range.first,
                 sortedByAppearanceMatchResults.last().range.last + 1
             )
+            val accepted = playerAcceptedRegex
+                .find(
+                    comments.subSequence(
+                        sortedByAppearanceMatchResults.last().range.last,
+                        minOf(
+                            sortedByAppearanceMatchResults.last().range.last + 100,
+                            comments.length,
+                            nextIntroMatchResult?.range?.first ?: Int.MAX_VALUE
+                        )
+                    )
+                )
+                ?.value?.let {
+                    if (it.equals("Ja", ignoreCase = true)) {
+                        null // not safe, cause phone call starts with: Ja, bitte? Ah, hallo ...
+                    } else if (it.equals("Nein", ignoreCase = true)) {
+                        false
+                    } else {
+                        null
+                    }
+                } ?: (
+                    nextIntroMatchResult?.range?.first?.let { nextIntroBeginn ->
+                        nextIntroBeginn > (metadataMatchResults
+                            .getOrNull(metadataMatchResults.indexOf(metadataMatchResult) + 1)
+                            ?.range?.first ?: Int.MAX_VALUE)
+                    })
+
 
             val ageMatchGroup = introMatchResult.groups["age"]
             val nameMatchGroup = introMatchResult.groups["name"]
@@ -175,6 +202,7 @@ object CommentParser {
                 postedAt,
                 skill,
                 potential,
+                accepted,
                 eachPlayerCount.getOrDefault(nameMatchGroup.value, 0),
                 comment
             )
@@ -218,6 +246,7 @@ data class ScoutComment(
     val postedAt: LocalDateTime?,
     val skill: Skill?,
     val potential: Skill?,
+    val accepted: Boolean?,
     val occurrences: Int,
     val comment: CharSequence
 )
