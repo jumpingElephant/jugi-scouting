@@ -35,6 +35,7 @@ fun App() {
 
     val appState = applicationProperties.current
     var scoutComments by remember { mutableStateOf(TextFieldValue(if (appState.isDevMode()) ScoutCommentsSample.getSample() else "")) }
+    var joinComments by remember { mutableStateOf(false) }
     var scoutCommentList: List<ScoutComment> by remember { mutableStateOf(CommentParser.parse(scoutComments.text)) }
 
     Scaffold(
@@ -69,6 +70,11 @@ fun App() {
                         )
                         Text("Kommentare speichern")
                     }
+                    Switch(
+                        joinComments,
+                        onCheckedChange = { joinComments = it },
+                        colors = SwitchDefaults.colors(MaterialTheme.colors.primary),
+                    )
                 }
             }
         }
