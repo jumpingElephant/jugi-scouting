@@ -143,6 +143,34 @@ object CommentParser {
                 introMatchResult,
                 nextIntroMatchResult
             ).firstOrNull()
+            val speciality =
+                findAssociatedMatchResults(headerMatchResults, introMatchResult, nextIntroMatchResult).firstOrNull()
+                    ?.let { "kopfballstark" } ?: findAssociatedMatchResults(
+                    powerfulMatchResults,
+                    introMatchResult,
+                    nextIntroMatchResult
+                ).firstOrNull()?.let { "durchsetzungsstark" } ?: findAssociatedMatchResults(
+                    unpredictableMatchResults,
+                    introMatchResult,
+                    nextIntroMatchResult
+                ).firstOrNull()?.let { "unberechenbar" } ?: findAssociatedMatchResults(
+                    technicalMatchResults,
+                    introMatchResult,
+                    nextIntroMatchResult
+                ).firstOrNull()?.let { "Ballzauberer" } ?: findAssociatedMatchResults(
+                    quickMatchResults,
+                    introMatchResult,
+                    nextIntroMatchResult
+                ).firstOrNull()?.let { "schnell" } ?: findAssociatedMatchResults(
+                    resilientMatchResults,
+                    introMatchResult,
+                    nextIntroMatchResult
+                ).firstOrNull()?.let { "Geneser" } ?: findAssociatedMatchResults(
+                    supporterMatchResults,
+                    introMatchResult,
+                    nextIntroMatchResult
+                ).firstOrNull()?.let { "mannschaftsdienlich" }
+
             val metadataMatchResult = findPrefixedMatchResults(metadataMatchResults, introMatchResult)
 
             val sortedByAppearanceMatchResults = listOfNotNull(
@@ -202,6 +230,7 @@ object CommentParser {
                 postedAt,
                 skill,
                 potential,
+                speciality,
                 accepted,
                 eachPlayerCount.getOrDefault(nameMatchGroup.value, 0),
                 comment
@@ -246,6 +275,7 @@ data class ScoutComment(
     val postedAt: LocalDateTime?,
     val skill: Skill?,
     val potential: Skill?,
+    val speciality: String?,
     val accepted: Boolean?,
     val occurrences: Int,
     val comment: CharSequence

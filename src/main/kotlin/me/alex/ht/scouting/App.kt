@@ -11,10 +11,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Backspace
-import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.icons.filled.RestartAlt
-import androidx.compose.material.icons.filled.SaveAlt
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,7 +32,6 @@ fun App() {
 
     val appState = applicationProperties.current
     var scoutComments by remember { mutableStateOf(TextFieldValue(if (appState.isDevMode()) ScoutCommentsSample.getSample() else "")) }
-    var joinComments by remember { mutableStateOf(false) }
     var scoutCommentList: List<ScoutComment> by remember { mutableStateOf(CommentParser.parse(scoutComments.text)) }
 
     Scaffold(
@@ -45,18 +41,28 @@ fun App() {
             )
             {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Button(onClick = {
+                        scoutComments = TextFieldValue(ScoutCommentsSample.getSample())
+                        scoutCommentList = CommentParser.parse(scoutComments.text)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.ReplayCircleFilled,
+                            contentDescription = "Datei laden"
+                        )
+                        Text("Datei laden")
+                    }
                     Button(onClick = { scoutComments = TextFieldValue(""); scoutCommentList = emptyList() }) {
                         Icon(
                             imageVector = Icons.Default.DeleteForever,
-                            contentDescription = "alles leeren"
+                            contentDescription = "leeren"
                         )
-                        Text("alles leeren")
+                        Text("leeren")
                     }
                     Button(onClick = {
                         scoutCommentList = CommentParser.parse(scoutComments.text)
                     }) {
                         Icon(
-                            imageVector = Icons.Default.RestartAlt,
+                            imageVector = Icons.Default.PlaylistPlay,
                             contentDescription = "Scoutkommentare auswerten"
                         )
                         Text("auswerten")
@@ -65,16 +71,11 @@ fun App() {
                         Exporter.exportDatesAndCommentsNewLineSeparated(scoutCommentList)
                     }) {
                         Icon(
-                            imageVector = Icons.Default.SaveAlt,
-                            contentDescription = "Kommentare speichern"
+                            imageVector = Icons.Default.ImportExport,
+                            contentDescription = "Exportieren"
                         )
-                        Text("Kommentare speichern")
+                        Text("Exportieren")
                     }
-                    Switch(
-                        joinComments,
-                        onCheckedChange = { joinComments = it },
-                        colors = SwitchDefaults.colors(MaterialTheme.colors.primary),
-                    )
                 }
             }
         }
@@ -203,6 +204,7 @@ private fun PlayerPreview(scoutComment: ScoutComment) {
                 textAlign = TextAlign.End
             )
         }
+        scoutComment.speciality?.let { Text(it) }
         scoutComment.skill?.let { Text("Fähigkeit: ${it.type.label}=${it.level.label()}") }
         scoutComment.potential?.let { Text("Potential: ${it.type.label}=${it.level.label()}") }
     }
