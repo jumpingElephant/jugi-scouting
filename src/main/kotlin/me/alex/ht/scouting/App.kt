@@ -2,13 +2,11 @@
 
 package me.alex.ht.scouting
 
-import androidx.compose.foundation.ScrollbarStyle
-import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -81,16 +79,39 @@ fun App() {
         }
     ) {
         Row {
+            val scrollState = rememberScrollState()
+
             // Eingabefeld für Scoutkommentare
-            TextField(
-                scoutComments,
-                modifier = Modifier.fillMaxWidth(0.5f),
-                onValueChange = {
-                    scoutComments = it
-                },
-                label = { Text(text = "Scoutkommentare") },
-            )
-            // Ergebnisbereich
+            Box(modifier = Modifier.fillMaxHeight()) {
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(scrollState)
+                        .fillMaxHeight()
+                ) {
+                    TextField(
+                        scoutComments,
+                        modifier = Modifier.fillMaxWidth(0.5f),
+                        onValueChange = {
+                            scoutComments = it
+                        },
+                        label = { Text(text = "Scoutkommentare") },
+                    )
+                }
+                VerticalScrollbar(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .fillMaxHeight(),
+                    style = ScrollbarStyle(
+                        minimalHeight = 24.dp,
+                        thickness = 8.dp,
+                        shape = MaterialTheme.shapes.small,
+                        hoverDurationMillis = 300,
+                        unhoverColor = MaterialTheme.colors.primary.copy(alpha = 0.42f),
+                        hoverColor = MaterialTheme.colors.primary,
+                    ),
+                    adapter = rememberScrollbarAdapter(scrollState)
+                )
+            }            // Ergebnisbereich
             Preview(scoutCommentList)
         }
     }
@@ -156,7 +177,7 @@ fun Preview(scoutCommentList: List<ScoutComment>) {
                     .align(Alignment.CenterEnd)
                     .fillMaxHeight(),
                 style = ScrollbarStyle(
-                    minimalHeight = 16.dp,
+                    minimalHeight = 24.dp,
                     thickness = 8.dp,
                     shape = MaterialTheme.shapes.small,
                     hoverDurationMillis = 300,
