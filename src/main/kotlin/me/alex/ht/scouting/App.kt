@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.isTypedEvent
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -14,13 +15,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import me.alex.ht.scouting.data.Exporter
 import me.alex.ht.scouting.data.ScoutCommentsSample
 import me.alex.ht.scouting.parser.CommentParser
 import me.alex.ht.scouting.parser.ScoutComment
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent.VK_END
+import java.awt.event.KeyEvent.VK_HOME
 
 val applicationProperties = LocalApplicationProperties
 
@@ -79,10 +88,11 @@ fun App() {
         }
     ) {
         Row {
-            val scrollState = rememberScrollState()
-
             // Eingabefeld für Scoutkommentare
             Box(modifier = Modifier.fillMaxHeight()) {
+                val scrollState = rememberScrollState()
+                val coroutineScope = rememberCoroutineScope()
+
                 Column(
                     modifier = Modifier
                         .verticalScroll(scrollState)
@@ -90,7 +100,22 @@ fun App() {
                 ) {
                     TextField(
                         scoutComments,
-                        modifier = Modifier.fillMaxWidth(0.5f),
+                        modifier = Modifier.fillMaxWidth(0.5f)
+                            .onKeyEvent {
+                                if ((it.type == KeyEventType.KeyUp
+                                            && !it.isTypedEvent
+                                            && it.nativeKeyEvent.modifiersEx == InputEvent.CTRL_DOWN_MASK)
+                                ) {
+                                    if (it.nativeKeyEvent.keyCode == VK_HOME) {
+                                        scoutComments = scoutComments.copy(selection = TextRange(0))
+                                        coroutineScope.launch { scrollState.scrollTo(0) }
+                                    } else if (it.nativeKeyEvent.keyCode == VK_END) {
+                                        scoutComments = scoutComments.copy(selection = TextRange(Int.MAX_VALUE))
+                                        coroutineScope.launch { scrollState.scrollTo(scrollState.maxValue) }
+                                    }
+                                }
+                                false
+                            },
                         onValueChange = {
                             scoutComments = it
                         },
